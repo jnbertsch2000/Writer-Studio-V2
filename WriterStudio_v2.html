@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writer's Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --white: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #666666;
+    --border: #dddddd;
+    --accent: #4a6fa5;
+    --accent-light: #e8eef6;
+    --accent-dark: #2d4d7a;
+    --sidebar-bg: #efefed;
+    --sidebar-border: #d8d8d5;
+    --header-bg: #2c3e50;
+    --header-text: #ffffff;
+    --active: #4a6fa5;
+    --danger: #c0392b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Crimson Pro', serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #app {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--header-bg);
+    border-bottom: 1px solid #1a2530;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: #ffffff;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  .logo span { color: #a8c4e0; font-style: italic; }
+
+  .project-selector {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  select, input[type="text"] {
+    font-family: 'Crimson Pro', serif;
+    font-size: 15px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 6px 10px;
+  }
+
+  select { cursor: pointer; }
+  select option { background: #2c3e50; color: #ffffff; }
+
+  .btn {
+    font-family: 'Crimson Pro', serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-gold {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent-dark);
+  }
+
+  .btn-gold:hover { background: var(--accent-dark); transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.1);
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .btn-ghost:hover { background: rgba(255,255,255,0.2); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border-color: rgba(192,57,43,0.4);
+  }
+
+  .btn-danger:hover { background: rgba(192,57,43,0.1); }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 53px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-section {
+    padding: 14px 12px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chapter-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .chapter-item {
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--muted);
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chapter-item:hover { color: var(--ink); background: #e4e4e0; }
+  .chapter-item.active { color: var(--accent-dark); border-left-color: var(--accent); background: var(--accent-light); font-weight: 600; }
+
+  .chapter-del {
+    opacity: 0;
+    font-size: 12px;
+    color: var(--danger);
+    padding: 2px 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .chapter-item:hover .chapter-del { opacity: 1; }
+
+  .sidebar-footer {
+    padding: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--sidebar-bg);
+  }
+
+  .sidebar-footer .btn-gold {
+    background: var(--accent);
+    color: white;
+  }
+
+  /* ── CONTENT AREA ── */
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    overflow: hidden;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    background: #f0f0ee;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    padding: 10px 18px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tab:hover { color: var(--ink); background: #e8e8e5; }
+  .tab.active { color: var(--accent-dark); border-bottom-color: var(--accent); background: #ffffff; }
+  .tab .tab-icon { font-size: 14px; }
+
+  /* ── EDITOR TOOLBAR ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f8f8f6;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .toolbar-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--ink);
+    transition: all 0.15s;
+    font-family: serif;
+  }
+
+  .toolbar-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+
+  .toolbar-sep { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+
+  .toolbar-right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+
+  /* ── MAIN EDITOR ── */
+  .editor-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px 40px;
+    background: #ffffff;
+  }
+
+  .chapter-title-input {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #111111;
+    -webkit-text-fill-color: #111111;
+    background: #ffffff;
+    border: none;
+    border-bottom: 2px solid var(--border);
+    width: 100%;
+    padding: 0 0 10px;
+    margin-bottom: 20px;
+    outline: none;
+  }
+
+  .chapter-title-input::placeholder { color: #bbbbbb; }
+  .chapter-title-input:focus { border-bottom-color: var(--accent); }
+
+  #editor {
+    width: 100%;
+    min-height: 500px;
+    flex: 1;
+    font-family: 'Crimson Pro', serif;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #111111;
+    -webkit-text-fill-color: #111111;
+    background: #ffffff;
+    border: none;
+    outline: none;
+    resize: none;
+    white-space: pre-wrap;
+    padding: 0;
+  }
+
+  #editor::placeholder { color: #bbbbbb; }
+
+  /* ── METADATA PANEL ── */
+  .meta-panel {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .meta-panel.active { display: flex; }
+
+  .meta-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: #f8f8f6;
+  }
+
+  .meta-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+  }
+
+  .meta-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f7f7f5;
+  }
+
+  .meta-item {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .meta-item-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .meta-item-desc {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .meta-item-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .meta-item-btn {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: #f8f8f6;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .meta-item-btn:hover { background: var(--accent-light); color: var(--accent-dark); border-color: var(--accent); }
+
+  .add-item-form {
+    background: var(--accent-light);
+    border: 1px dashed var(--accent);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .add-item-form input, .add-item-form textarea {
+    width: 100%;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    outline: none;
+  }
+
+  .add-item-form textarea { min-height: 80px; resize: vertical; }
+
+  /* ── AI PANEL ── */
+  .ai-panel {
+    width: 300px;
+    min-width: 300px;
+    background: #f0f2f5;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s;
+  }
+
+  .ai-panel.collapsed { width: 40px; min-width: 40px; }
+
+  .ai-toggle {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    background: var(--header-bg);
+  }
+
+  .ai-toggle-icon { color: #a8c4e0; font-size: 18px; }
+  .ai-toggle-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .ai-panel-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 12px;
+    background: #f4f5f7;
+  }
+
+  .ai-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .ai-action-btn {
+    font-family: 'Crimson Pro', serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: #ffffff;
+    color: var(--accent-dark);
+    text-align: left;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ai-action-btn:hover { background: var(--accent-light); border-color: var(--accent); }
+  .ai-action-btn .btn-icon { font-size: 14px; }
+
+  .ai-output {
+    flex: 1;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 14px;
+    color: #222222;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+
+  .ai-output-placeholder {
+    color: #aaaaaa;
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  .ai-input-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .ai-input {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: #111111;
+    font-family: 'Crimson Pro', serif;
+    font-size: 14px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    outline: none;
+    resize: none;
+  }
+
+  .ai-input:focus { border-color: var(--accent); }
+
+  .ai-send {
+    background: var(--accent);
+    border: none;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 16px;
+    width: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .ai-send:hover { background: var(--accent-dark); }
+
+  /* ── MODALS ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 520px;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 28px;
+  }
+
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    background: #f8f8f6;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 9px 12px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 16px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+  .form-group textarea { min-height: 80px; resize: vertical; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* ── LOADING ── */
+  .loading-bar {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite;
+    border-radius: 2px;
+    margin-bottom: 10px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* ── EMPTY STATES ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    background: #ffffff;
+    flex: 1;
+  }
+
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: #2c3e50;
+    color: #ffffff;
+    border: 1px solid #4a6fa5;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 15px;
+    z-index: 300;
+    transition: transform 0.3s;
+    pointer-events: none;
+  }
+
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px;
+    text-align: center;
+    background: linear-gradient(135deg, #2c3e50 0%, #3d5a73 100%);
+  }
+
+  #welcome h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px;
+    color: #ffffff;
+    margin-bottom: 12px;
+    line-height: 1.1;
+  }
+
+  #welcome p {
+    font-family: 'Crimson Pro', serif;
+    font-size: 20px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 40px;
+    font-style: italic;
+  }
+
+  .api-form {
+    background: #ffffff;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    text-align: left;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .api-form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .api-form input {
+    width: 100%;
+    background: #f8f8f6;
+    border: 1px solid var(--border);
+    color: #111111;
+    -webkit-text-fill-color: #111111;
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    margin-bottom: 20px;
+    outline: none;
+  }
+
+  .api-form input:focus { border-color: var(--accent); }
+
+  .api-hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #f0f0ee; }
+  ::-webkit-scrollbar-thumb { background: #cccccc; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #aaaaaa; }
+
+  #imgUpload { display: none; }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 180px; min-width: 180px; }
+    .ai-panel { width: 260px; min-width: 260px; }
+    .editor-wrap { padding: 20px 16px; }
+    .ai-panel.collapsed { width: 36px; min-width: 36px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- WELCOME / API KEY SCREEN -->
+  <div id="welcome">
+    <h1>Writer's<br><em>Studio</em></h1>
+    <p>Your AI-powered creative companion</p>
+    <div class="api-form">
+      <label>Anthropic API Key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+      <button class="btn btn-gold" style="width:100%;padding:12px;" onclick="saveApiKey()">
+        Enter the Studio →
+      </button>
+      <p class="api-hint">Your key is stored locally in your browser and never sent anywhere except directly to Anthropic's API.</p>
+    </div>
+  </div>
+
+  <!-- MAIN APP (hidden until key entered) -->
+  <div id="mainApp" style="display:none; flex-direction:column; height:100vh;">
+
+    <!-- HEADER -->
+    <header>
+      <div class="logo">Writer's <span>Studio</span></div>
+      <div class="project-selector">
+        <select id="projectSelect" onchange="switchProject()" style="max-width:160px;">
+          <option value="">— Select Project —</option>
+        </select>
+        <button class="btn btn-gold" onclick="showModal('newProject')">+ New</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost" onclick="exportProject()" title="Export project as JSON">⬇ Export</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" title="Import project">⬆ Import</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importProject(event)">
+        <button class="btn btn-ghost" onclick="changeApiKey()" style="font-size:12px;">🔑 API Key</button>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-section">Chapters</div>
+        <div class="chapter-list" id="chapterList"></div>
+        <div class="sidebar-footer">
+          <button class="btn btn-gold" onclick="addChapter()">+ Add Chapter</button>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content" id="contentArea">
+        <div class="empty-state" id="noProjectMsg">
+          <div class="empty-icon">📖</div>
+          <h3>Select or create a project</h3>
+          <p style="margin-top:8px;font-size:16px;">Start writing your story</p>
+        </div>
+      </div>
+
+      <!-- AI PANEL -->
+      <div class="ai-panel" id="aiPanel">
+        <div class="ai-toggle" onclick="toggleAiPanel()">
+          <span class="ai-toggle-icon">✦</span>
+          <span class="ai-toggle-label">AI Assistant</span>
+        </div>
+        <div class="ai-panel-inner" id="aiPanelInner">
+          <div class="ai-actions">
+            <button class="ai-action-btn" onclick="aiAction('grammar')"><span class="btn-icon">✎</span> Check Grammar & Spelling</button>
+            <button class="ai-action-btn" onclick="aiAction('feedback')"><span class="btn-icon">◈</span> Analyze & Give Feedback</button>
+            <button class="ai-action-btn" onclick="aiAction('continue')"><span class="btn-icon">▶</span> Continue Writing (Match Style)</button>
+            <button class="ai-action-btn" onclick="aiAction('updateMeta')"><span class="btn-icon">⟳</span> Auto-Update All Metadata</button>
+            <button class="ai-action-btn" onclick="document.getElementById('imgUpload').click()"><span class="btn-icon">📷</span> Photo → Extract Text</button>
+            <input type="file" id="imgUpload" accept="image/*" onchange="extractFromImage(event)">
+          </div>
+          <div id="aiOutput" class="ai-output">
+            <span class="ai-output-placeholder">AI responses will appear here…</span>
+          </div>
+          <div class="ai-input-row">
+            <textarea class="ai-input" id="aiPromptInput" rows="2" placeholder="Ask the AI anything about your story…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCustomPrompt();}"></textarea>
+            <button class="ai-send" onclick="sendCustomPrompt()">↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /mainApp -->
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="if(event.target===this)closeModal()">
+    <div class="modal" id="modalBox"></div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let apiKey = '';
+let state = {
+  projects: {},
+  currentProject: null,
+  currentChapter: null,
+};
+let aiPanelOpen = true;
+let autosaveTimer = null;
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function init() {
+  apiKey = localStorage.getItem('ws_apikey') || '';
+  const saved = localStorage.getItem('ws_state');
+  if (saved) {
+    try { state = JSON.parse(saved); } catch(e) {}
+  }
+
+  if (apiKey) {
+    showApp();
+  } else {
+    document.getElementById('welcome').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+  }
+}
+
+function saveApiKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k.startsWith('sk-ant-')) { toast('Please enter a valid Anthropic API key (starts with sk-ant-)'); return; }
+  apiKey = k;
+  localStorage.setItem('ws_apikey', k);
+  showApp();
+}
+
+function changeApiKey() {
+  apiKey = '';
+  localStorage.removeItem('ws_apikey');
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('welcome').style.display = 'flex';
+  document.getElementById('apiKeyInput').value = '';
+}
+
+function showApp() {
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  renderProjectSelect();
+  if (state.currentProject && state.projects[state.currentProject]) {
+    document.getElementById('projectSelect').value = state.currentProject;
+    renderSidebar();
+    if (state.currentChapter) openChapter(state.currentChapter);
+    else renderNoChapter();
+  }
+}
+
+// ══════════════════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════════════════
+function save() {
+  localStorage.setItem('ws_state', JSON.stringify(state));
+}
+
+function queueSave() {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(save, 800);
+}
+
+// ══════════════════════════════════════════
+// PROJECTS
+// ══════════════════════════════════════════
+function renderProjectSelect() {
+  const sel = document.getElementById('projectSelect');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Select Project —</option>';
+  Object.entries(state.projects).forEach(([id, p]) => {
+    const o = document.createElement('option');
+    o.value = id;
+    o.textContent = p.name;
+    sel.appendChild(o);
+  });
+  if (cur) sel.value = cur;
+}
+
+function switchProject() {
+  const id = document.getElementById('projectSelect').value;
+  if (!id) return;
+  state.currentProject = id;
+  state.currentChapter = null;
+  save();
+  renderSidebar();
+  renderNoChapter();
+}
+
+function showModal(type, data) {
+  const overlay = document.getElementById('modalOverlay');
+  const box = document.getElementById('modalBox');
+  overlay.style.display = 'flex';
+
+  if (type === 'newProject') {
+    box.innerHTML = `
+      <h2>New Project</h2>
+      <div class="form-group"><label>Title</label><input id="mProjTitle" placeholder="My Novel" autofocus></div>
+      <div class="form-group"><label>Genre</label><input id="mProjGenre" placeholder="Fantasy, Sci-Fi, Romance…"></div>
+      <div class="form-group"><label>Description</label><textarea id="mProjDesc" placeholder="What's this story about?"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-gold" onclick="createProject()">Create Project</button>
+      </div>`;
+  } else if (type === 'addMeta') {
+    const { category } = data;
+    const label = category === 'characters' ? 'Character' : category === 'places' ? 'Place' : 'Item';
+    box.innerHTML = `
+      <h2>Add ${label}</h2>
+      <div class="form-group"><label>Name</label><input id="mMetaName" placeholder="${label} name" autofocus></div>
+      <div class="form-group"><label>Details</label><textarea id="mMetaDesc" placeholder="Describe this ${label.toLowerCase()}…"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-gold" onclick="addMetaItem('${category}')">Add ${label}</button>
+      </div>`;
+  } else if (type === 'editMeta') {
+    const { category, idx } = data;
+    const item = getProject().meta[category][idx];
+    box.innerHTML = `
+      <h2>Edit Item</h2>
+      <div class="form-group"><label>Name</label><input id="mMetaName" value="${esc(item.name)}" autofocus></div>
+      <div class="form-group"><label>Details</label><textarea id="mMetaDesc">${esc(item.desc)}</textarea></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-gold" onclick="editMetaItem('${category}', ${idx})">Save</button>
+      </div>`;
+  } else if (type === 'editSingleText') {
+    const { category } = data;
+    const proj = getProject();
+    const val = proj.meta[category] || '';
+    const labels = { plot:'Plot', outline:'Outline', storyline:'Storyline' };
+    box.innerHTML = `
+      <h2>Edit ${labels[category]}</h2>
+      <div class="form-group"><textarea id="mSingleText" style="min-height:200px">${esc(val)}</textarea></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-gold" onclick="saveSingleText('${category}')">Save</button>
+      </div>`;
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+function createProject() {
+  const title = document.getElementById('mProjTitle').value.trim();
+  if (!title) { toast('Please enter a title'); return; }
+  const id = 'proj_' + Date.now();
+  state.projects[id] = {
+    name: title,
+    genre: document.getElementById('mProjGenre').value.trim(),
+    desc: document.getElementById('mProjDesc').value.trim(),
+    chapters: {},
+    chapterOrder: [],
+    meta: {
+      characters: [],
+      places: [],
+      plot: '',
+      outline: '',
+      storyline: '',
+    }
+  };
+  state.currentProject = id;
+  state.currentChapter = null;
+  save();
+  closeModal();
+  renderProjectSelect();
+  document.getElementById('projectSelect').value = id;
+  renderSidebar();
+  renderNoChapter();
+  toast('Project created!');
+}
+
+function getProject() {
+  return state.projects[state.currentProject];
+}
+
+// ══════════════════════════════════════════
+// CHAPTERS
+// ══════════════════════════════════════════
+function renderSidebar() {
+  const proj = getProject();
+  if (!proj) return;
+  const list = document.getElementById('chapterList');
+  list.innerHTML = '';
+  proj.chapterOrder.forEach(cid => {
+    const ch = proj.chapters[cid];
+    const div = document.createElement('div');
+    div.className = 'chapter-item' + (state.currentChapter === cid ? ' active' : '');
+    div.innerHTML = `<span>${esc(ch.title || 'Untitled')}</span><button class="chapter-del" onclick="deleteChapter(event,'${cid}')">✕</button>`;
+    div.onclick = (e) => { if (!e.target.classList.contains('chapter-del')) openChapter(cid); };
+    list.appendChild(div);
+  });
+}
+
+function addChapter() {
+  if (!state.currentProject) { toast('Select a project first'); return; }
+  const proj = getProject();
+  const cid = 'ch_' + Date.now();
+  const num = proj.chapterOrder.length + 1;
+  proj.chapters[cid] = { title: `Chapter ${num}`, body: '' };
+  proj.chapterOrder.push(cid);
+  save();
+  renderSidebar();
+  openChapter(cid);
+}
+
+function deleteChapter(e, cid) {
+  e.stopPropagation();
+  if (!confirm('Delete this chapter?')) return;
+  const proj = getProject();
+  delete proj.chapters[cid];
+  proj.chapterOrder = proj.chapterOrder.filter(id => id !== cid);
+  if (state.currentChapter === cid) {
+    state.currentChapter = null;
+    renderNoChapter();
+  }
+  save();
+  renderSidebar();
+}
+
+function openChapter(cid) {
+  flushEditor();
+  state.currentChapter = cid;
+  save();
+  renderSidebar();
+
+  const proj = getProject();
+  const ch = proj.chapters[cid];
+  const content = document.getElementById('contentArea');
+
+  content.innerHTML = `
+    <div class="tabs" id="chapterTabs">
+      <div class="tab active" data-tab="write" onclick="switchTab('write')"><span class="tab-icon">✎</span> Write</div>
+      <div class="tab" data-tab="characters" onclick="switchTab('characters')"><span class="tab-icon">👤</span> Characters</div>
+      <div class="tab" data-tab="places" onclick="switchTab('places')"><span class="tab-icon">🗺</span> Places</div>
+      <div class="tab" data-tab="plot" onclick="switchTab('plot')"><span class="tab-icon">⚡</span> Plot</div>
+      <div class="tab" data-tab="outline" onclick="switchTab('outline')"><span class="tab-icon">📋</span> Outline</div>
+      <div class="tab" data-tab="storyline" onclick="switchTab('storyline')"><span class="tab-icon">📜</span> Storyline</div>
+    </div>
+
+    <!-- Write Tab -->
+    <div id="tab-write" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="toolbar">
+        <button class="toolbar-btn" onclick="insertAround('**','**')" title="Bold (markdown)"><b>B</b></button>
+        <button class="toolbar-btn" onclick="insertAround('_','_')" title="Italic (markdown)"><i>I</i></button>
+        <button class="toolbar-btn" onclick="insertLinePrefix('> ')" title="Quote / Indent">❝</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" onclick="copySelected()" title="Copy">⎘</button>
+        <button class="toolbar-btn" onclick="pasteToEditor()" title="Paste">⎗</button>
+        <button class="toolbar-btn" onclick="cutSelected()" title="Cut">✂</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" onclick="document.getElementById('editor').focus()" title="Focus editor">↵</button>
+        <div class="toolbar-right">
+          <span id="wordCount" style="font-size:13px;color:var(--muted);font-family:'JetBrains Mono',monospace;">0 words</span>
+        </div>
+      </div>
+      <div class="editor-wrap">
+        <input class="chapter-title-input" id="chapterTitleInput" value="${esc(ch.title)}" placeholder="Chapter Title" oninput="updateChapterTitle()">
+        <textarea id="editor" placeholder="Begin writing here…" oninput="onEditorInput()" spellcheck="true">${ch.body ? ch.body.replace(/<br\s*\/?>/gi,'\n').replace(/<p[^>]*>/gi,'').replace(/<\/p>/gi,'\n').replace(/<[^>]+>/g,'') : ''}</textarea>
+      </div>
+    </div>
+
+    <!-- Meta Tabs (hidden initially) -->
+    <div id="tab-characters" class="meta-panel"></div>
+    <div id="tab-places" class="meta-panel"></div>
+    <div id="tab-plot" class="meta-panel"></div>
+    <div id="tab-outline" class="meta-panel"></div>
+    <div id="tab-storyline" class="meta-panel"></div>
+  `;
+
+  updateWordCount();
+  document.getElementById('editor').focus();
+}
+
+function renderNoChapter() {
+  const content = document.getElementById('contentArea');
+  if (!state.currentProject) {
+    content.innerHTML = `<div class="empty-state"><div class="empty-icon">📖</div><h3>Select or create a project</h3></div>`;
+    return;
+  }
+  content.innerHTML = `<div class="empty-state"><div class="empty-icon">✎</div><h3>Select a chapter</h3><p style="margin-top:8px;font-size:16px;color:var(--muted)">Or click "+ Add Chapter" to begin</p></div>`;
+}
+
+function flushEditor() {
+  if (!state.currentChapter || !state.currentProject) return;
+  const editor = document.getElementById('editor');
+  if (!editor) return;
+  const proj = getProject();
+  if (proj && proj.chapters[state.currentChapter]) {
+    proj.chapters[state.currentChapter].body = editor.value;
+    save();
+  }
+}
+
+function onEditorInput() {
+  updateWordCount();
+  const editor = document.getElementById('editor');
+  const proj = getProject();
+  if (proj && state.currentChapter && proj.chapters[state.currentChapter]) {
+    proj.chapters[state.currentChapter].body = editor.value;
+    queueSave();
+  }
+}
+
+function updateChapterTitle() {
+  const val = document.getElementById('chapterTitleInput').value;
+  const proj = getProject();
+  if (proj && state.currentChapter) {
+    proj.chapters[state.currentChapter].title = val;
+    queueSave();
+    renderSidebar();
+  }
+}
+
+function updateWordCount() {
+  const el = document.getElementById('wordCount');
+  const editor = document.getElementById('editor');
+  if (!el || !editor) return;
+  const text = editor.value.trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  el.textContent = words.toLocaleString() + ' words';
+}
+
+function insertAround(before, after) {
+  const ed = document.getElementById('editor');
+  if (!ed) return;
+  const s = ed.selectionStart, e = ed.selectionEnd;
+  const selected = ed.value.substring(s, e);
+  const replacement = before + selected + after;
+  ed.setRangeText(replacement, s, e, 'select');
+  ed.focus();
+  onEditorInput();
+}
+
+function insertLinePrefix(prefix) {
+  const ed = document.getElementById('editor');
+  if (!ed) return;
+  const s = ed.selectionStart;
+  const lineStart = ed.value.lastIndexOf('\n', s - 1) + 1;
+  ed.setRangeText(prefix, lineStart, lineStart, 'end');
+  ed.focus();
+  onEditorInput();
+}
+
+function copySelected() {
+  const ed = document.getElementById('editor');
+  if (!ed) return;
+  const text = ed.value.substring(ed.selectionStart, ed.selectionEnd) || ed.value;
+  navigator.clipboard.writeText(text).then(() => toast('Copied!')).catch(() => toast('Use Ctrl+C to copy'));
+}
+
+function cutSelected() {
+  const ed = document.getElementById('editor');
+  if (!ed) return;
+  const s = ed.selectionStart, e = ed.selectionEnd;
+  if (s === e) return;
+  const text = ed.value.substring(s, e);
+  navigator.clipboard.writeText(text).then(() => {
+    ed.setRangeText('', s, e, 'end');
+    onEditorInput();
+    toast('Cut!');
+  }).catch(() => toast('Use Ctrl+X to cut'));
+}
+
+async function pasteToEditor() {
+  const ed = document.getElementById('editor');
+  if (!ed) return;
+  try {
+    const text = await navigator.clipboard.readText();
+    const s = ed.selectionStart, e = ed.selectionEnd;
+    ed.setRangeText(text, s, e, 'end');
+    ed.focus();
+    onEditorInput();
+    toast('Pasted!');
+  } catch {
+    toast('Tap and hold in the text area → Paste');
+  }
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function switchTab(name) {
+  flushEditor();
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('[id^="tab-"]').forEach(t => {
+    if (t.id === 'tab-write') {
+      t.style.display = name === 'write' ? 'flex' : 'none';
+    } else {
+      t.classList.toggle('active', t.id === 'tab-' + name);
+    }
+  });
+
+  if (name !== 'write') renderMetaTab(name);
+}
+
+function renderMetaTab(category) {
+  const panel = document.getElementById('tab-' + category);
+  if (!panel) return;
+  const proj = getProject();
+  const labels = { characters:'Characters', places:'Places', plot:'Plot', outline:'Outline', storyline:'Storyline' };
+  const isList = ['characters','places'].includes(category);
+
+  let html = `<div class="meta-header"><h2>${labels[category]}</h2>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost" style="font-size:13px;" onclick="aiUpdateMeta('${category}')">✦ AI Update</button>
+      ${isList ? `<button class="btn btn-gold" onclick="showModal('addMeta',{category:'${category}'})">+ Add</button>` : `<button class="btn btn-gold" onclick="showModal('editSingleText',{category:'${category}'})">Edit</button>`}
+    </div>
+  </div>
+  <div class="meta-content">`;
+
+  if (isList) {
+    const items = proj.meta[category] || [];
+    if (items.length === 0) {
+      html += `<div class="empty-state" style="padding:40px 20px;"><div class="empty-icon">${category==='characters'?'👤':'🗺'}</div><h3>No ${labels[category]} yet</h3><p style="font-size:15px;margin-top:6px;color:var(--muted)">Add manually or use AI to extract from your text</p></div>`;
+    } else {
+      items.forEach((item, idx) => {
+        html += `<div class="meta-item">
+          <div class="meta-item-actions">
+            <button class="meta-item-btn" onclick="showModal('editMeta',{category:'${category}',idx:${idx}})">Edit</button>
+            <button class="meta-item-btn" style="color:#c0392b;" onclick="deleteMetaItem('${category}',${idx})">✕</button>
+          </div>
+          <div class="meta-item-name">${esc(item.name)}</div>
+          <div class="meta-item-desc">${esc(item.desc)}</div>
+        </div>`;
+      });
+    }
+  } else {
+    const text = proj.meta[category] || '';
+    html += `<div class="meta-item"><div style="font-size:16px;line-height:1.8;white-space:pre-wrap;">${esc(text) || '<em style="color:var(--muted)">Nothing here yet. Click Edit or use AI Update.</em>'}</div></div>`;
+  }
+
+  html += '</div>';
+  panel.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+// META MANAGEMENT
+// ══════════════════════════════════════════
+function addMetaItem(category) {
+  const name = document.getElementById('mMetaName').value.trim();
+  const desc = document.getElementById('mMetaDesc').value.trim();
+  if (!name) { toast('Please enter a name'); return; }
+  const proj = getProject();
+  proj.meta[category].push({ name, desc });
+  save();
+  closeModal();
+  renderMetaTab(category);
+}
+
+function editMetaItem(category, idx) {
+  const name = document.getElementById('mMetaName').value.trim();
+  const desc = document.getElementById('mMetaDesc').value.trim();
+  if (!name) { toast('Please enter a name'); return; }
+  const proj = getProject();
+  proj.meta[category][idx] = { name, desc };
+  save();
+  closeModal();
+  renderMetaTab(category);
+}
+
+function deleteMetaItem(category, idx) {
+  if (!confirm('Delete this item?')) return;
+  const proj = getProject();
+  proj.meta[category].splice(idx, 1);
+  save();
+  renderMetaTab(category);
+}
+
+function saveSingleText(category) {
+  const val = document.getElementById('mSingleText').value;
+  const proj = getProject();
+  proj.meta[category] = val;
+  save();
+  closeModal();
+  renderMetaTab(category);
+}
+
+// ══════════════════════════════════════════
+// AI CALLS
+// ══════════════════════════════════════════
+async function callAI(messages, systemPrompt) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      system: systemPrompt || 'You are a helpful creative writing assistant.',
+      messages
+    })
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(()=>({error:{message:'Unknown error'}}));
+    throw new Error(err.error?.message || 'API error');
+  }
+  const data = await response.json();
+  return data.content[0].text;
+}
+
+function getChapterText() {
+  const editor = document.getElementById('editor');
+  return editor ? editor.value : '';
+}
+
+function getAllChapterText() {
+  const proj = getProject();
+  if (!proj) return '';
+  return proj.chapterOrder.map(cid => {
+    const ch = proj.chapters[cid];
+    const body = (ch.body || '').replace(/<[^>]+>/g, ' ').trim();
+    return `=== ${ch.title} ===\n${body}`;
+  }).join('\n\n');
+}
+
+function showAiLoading() {
+  document.getElementById('aiOutput').innerHTML = '<div class="loading-bar"></div><span style="color:var(--muted);font-style:italic;">AI is thinking…</span>';
+}
+
+function showAiResult(text) {
+  document.getElementById('aiOutput').textContent = text;
+  // Show insert button if editor is open
+  const existing = document.getElementById('aiInsertBtn');
+  if (existing) existing.remove();
+  const editor = document.getElementById('editor');
+  if (editor && text && !text.startsWith('Error') && !text.startsWith('✓')) {
+    const btn = document.createElement('button');
+    btn.id = 'aiInsertBtn';
+    btn.className = 'ai-action-btn';
+    btn.style.marginTop = '8px';
+    btn.innerHTML = '<span class="btn-icon">↙</span> Insert into Editor';
+    btn.onclick = () => {
+      const pos = editor.selectionStart || editor.value.length;
+      const insert = (editor.value ? '\n\n' : '') + text;
+      editor.setRangeText(insert, pos, pos, 'end');
+      onEditorInput();
+      toast('Inserted into editor!');
+      btn.remove();
+    };
+    document.getElementById('aiOutput').after(btn);
+  }
+}
+
+async function aiAction(action) {
+  if (!state.currentProject) { toast('No project selected'); return; }
+  const chText = getChapterText();
+
+  if (!chText.trim() && action !== 'updateMeta') { toast('Write something first!'); return; }
+  showAiLoading();
+
+  try {
+    let result = '';
+    if (action === 'grammar') {
+      result = await callAI([{ role:'user', content:`Please check this text for spelling and grammatical errors. List each issue with the incorrect text, what's wrong, and the correction:\n\n${chText}` }],
+        'You are a precise copy editor. Be thorough but concise.');
+
+    } else if (action === 'feedback') {
+      const proj = getProject();
+      result = await callAI([{ role:'user', content:`Analyze this excerpt from a ${proj.genre || 'fiction'} story. Provide feedback on: pacing, character voice, dialogue (if any), descriptions, and overall effectiveness. Be constructive and specific.\n\n${chText}` }],
+        'You are an experienced literary editor providing constructive creative writing feedback.');
+
+    } else if (action === 'continue') {
+      result = await callAI([{ role:'user', content:`Continue writing from where this text ends, matching the author's style, voice, and tone. Write 2-3 paragraphs:\n\n${chText}` }],
+        'You are a skilled ghostwriter. Mirror the author\'s voice precisely — their sentence rhythm, word choices, descriptive style, and narrative perspective.');
+
+    } else if (action === 'updateMeta') {
+      result = await aiUpdateAllMeta();
+    }
+
+    showAiResult(result);
+  } catch(e) {
+    showAiResult('Error: ' + e.message);
+  }
+}
+
+async function aiUpdateMeta(category) {
+  if (!state.currentProject) { toast('No project selected'); return; }
+
+  const allText = getAllChapterText();
+  if (!allText.trim()) { toast('Write some chapters first!'); return; }
+
+  showAiLoading();
+  const panel = document.getElementById('aiPanel');
+  if (panel.classList.contains('collapsed')) toggleAiPanel();
+
+  const proj = getProject();
+  const labels = { characters:'characters', places:'locations/places', plot:'overall plot', outline:'structural outline', storyline:'chronological storyline' };
+
+  try {
+    let prompt = '';
+    if (category === 'characters' || category === 'places') {
+      const existing = (proj.meta[category] || []).map(i => i.name).join(', ');
+      prompt = `Read the following story text and identify all ${labels[category]}. For each, provide a name and a brief description. Return ONLY a JSON array like: [{"name":"...","desc":"..."}, ...]. Merge with existing: ${existing || 'none'}\n\nSTORY:\n${allText}`;
+      const raw = await callAI([{ role:'user', content: prompt }], 'Return only valid JSON, no explanation, no markdown.');
+      const clean = raw.replace(/```json|```/g,'').trim();
+      const items = JSON.parse(clean);
+      proj.meta[category] = items;
+      save();
+      renderMetaTab(category);
+      showAiResult(`✓ Updated ${items.length} ${category}`);
+    } else {
+      prompt = `Read the following story text and write a comprehensive ${labels[category]} summary. Be thorough.\n\nSTORY:\n${allText}`;
+      const result = await callAI([{ role:'user', content: prompt }], 'You are a story analyst. Be thorough and organized.');
+      proj.meta[category] = result;
+      save();
+      renderMetaTab(category);
+      showAiResult(`✓ ${category} updated`);
+    }
+  } catch(e) {
+    showAiResult('Error: ' + e.message);
+    toast('AI update failed: ' + e.message);
+  }
+}
+
+async function aiUpdateAllMeta() {
+  const allText = getAllChapterText();
+  if (!allText.trim()) return 'No chapters written yet.';
+  const proj = getProject();
+
+  showAiResult('Updating all metadata — this may take a moment…');
+
+  // Characters
+  try {
+    const cRaw = await callAI([{role:'user',content:`Extract all characters from this story as JSON array [{"name":"...","desc":"..."}]. Only JSON, no markdown.\n\n${allText}`}], 'Return only valid JSON.');
+    proj.meta.characters = JSON.parse(cRaw.replace(/```json|```/g,'').trim());
+  } catch(e) {}
+
+  // Places
+  try {
+    const pRaw = await callAI([{role:'user',content:`Extract all places/locations from this story as JSON array [{"name":"...","desc":"..."}]. Only JSON, no markdown.\n\n${allText}`}], 'Return only valid JSON.');
+    proj.meta.places = JSON.parse(pRaw.replace(/```json|```/g,'').trim());
+  } catch(e) {}
+
+  // Plot
+  try {
+    proj.meta.plot = await callAI([{role:'user',content:`Write a comprehensive plot summary for this story:\n\n${allText}`}], 'You are a story analyst.');
+  } catch(e) {}
+
+  // Outline
+  try {
+    proj.meta.outline = await callAI([{role:'user',content:`Create a detailed structural outline for this story:\n\n${allText}`}], 'You are a story analyst.');
+  } catch(e) {}
+
+  // Storyline
+  try {
+    proj.meta.storyline = await callAI([{role:'user',content:`Write a chronological storyline (timeline of events) for this story:\n\n${allText}`}], 'You are a story analyst.');
+  } catch(e) {}
+
+  save();
+  return '✓ All metadata updated successfully! Switch to any tab to see the results.';
+}
+
+async function sendCustomPrompt() {
+  const input = document.getElementById('aiPromptInput');
+  const prompt = input.value.trim();
+  if (!prompt) return;
+  input.value = '';
+  showAiLoading();
+
+  const chText = getChapterText();
+  const proj = getProject();
+  const context = proj ? `Project: "${proj.name}" (${proj.genre || 'fiction'})\n\nCurrent chapter text:\n${chText}\n\n` : '';
+
+  try {
+    const result = await callAI([{ role:'user', content: context + prompt }],
+      'You are a creative writing assistant helping an author with their story. Be helpful, specific, and creative.');
+    showAiResult(result);
+  } catch(e) {
+    showAiResult('Error: ' + e.message);
+  }
+}
+
+async function extractFromImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  showAiLoading();
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    const mediaType = file.type;
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+              { type: 'text', text: 'Extract all text from this image exactly as written. If it appears to be handwritten manuscript pages, transcribe the text faithfully. Return only the extracted text.' }
+            ]
+          }]
+        })
+      });
+      const data = await response.json();
+      const extracted = data.content[0].text;
+      showAiResult('📷 Extracted text:\n\n' + extracted);
+
+      // Offer to insert
+      const editor = document.getElementById('editor');
+      if (editor && confirm('Insert extracted text into the editor?')) {
+        const pos = editor.selectionStart || editor.value.length;
+        const insert = (editor.value ? '\n\n' : '') + extracted;
+        editor.setRangeText(insert, pos, pos, 'end');
+        onEditorInput();
+        toast('Text inserted into editor!');
+      }
+    } catch(e) {
+      showAiResult('Error extracting text: ' + e.message);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════
+// IMPORT / EXPORT
+// ══════════════════════════════════════════
+function exportProject() {
+  if (!state.currentProject) { toast('No project selected'); return; }
+  const proj = getProject();
+  const json = JSON.stringify({ version: 1, project: proj }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (proj.name || 'project').replace(/\s+/g, '_') + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Project exported!');
+}
+
+function importProject(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const proj = data.project || data;
+      const id = 'proj_' + Date.now();
+      state.projects[id] = proj;
+      state.currentProject = id;
+      state.currentChapter = null;
+      save();
+      renderProjectSelect();
+      document.getElementById('projectSelect').value = id;
+      renderSidebar();
+      renderNoChapter();
+      toast('Project imported!');
+    } catch(err) {
+      toast('Failed to import: invalid file');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════
+function toggleAiPanel() {
+  const panel = document.getElementById('aiPanel');
+  const inner = document.getElementById('aiPanelInner');
+  aiPanelOpen = !aiPanelOpen;
+  panel.classList.toggle('collapsed', !aiPanelOpen);
+  inner.style.display = aiPanelOpen ? 'flex' : 'none';
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    flushEditor();
+    toast('Saved!');
+  }
+});
+
+window.addEventListener('beforeunload', flushEditor);
+
+init();
+</script>
+</body>
+</html>
