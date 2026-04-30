@@ -754,11 +754,78 @@
   #imgUpload { display: none; }
 
   @media (max-width: 768px) {
-    .sidebar { width: 180px; min-width: 180px; }
-    .ai-panel { width: 260px; min-width: 260px; }
-    .editor-wrap { padding: 20px 16px; }
-    .ai-panel.collapsed { width: 36px; min-width: 36px; }
+    .main { position: relative; }
+
+    .sidebar {
+      width: 160px;
+      min-width: 160px;
+    }
+
+    .editor-wrap { padding: 12px; }
+
+    /* AI panel becomes a slide-over on mobile, hidden by default */
+    .ai-panel {
+      position: fixed;
+      top: 53px;
+      right: 0;
+      bottom: 0;
+      width: 88vw !important;
+      min-width: unset !important;
+      max-width: 360px;
+      z-index: 150;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+      transform: translateX(100%);
+      transition: transform 0.3s;
+    }
+
+    .ai-panel.mobile-open {
+      transform: translateX(0);
+    }
+
+    .ai-panel.collapsed {
+      width: 88vw !important;
+      transform: translateX(100%);
+    }
+
+    /* Floating AI button to open panel */
+    #aiFloatBtn {
+      display: flex;
+    }
   }
+
+  @media (min-width: 769px) {
+    #aiFloatBtn { display: none !important; }
+  }
+
+  #aiFloatBtn {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 140;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 18px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(74,111,165,0.4);
+    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #aiPanelOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 145;
+  }
+
+  #aiPanelOverlay.active { display: block; }
 </style>
 </head>
 <body>
@@ -856,6 +923,10 @@
   </div>
 
   <div id="toast"></div>
+
+  <!-- Mobile AI float button -->
+  <button id="aiFloatBtn" onclick="toggleMobileAi()">✦ AI</button>
+  <div id="aiPanelOverlay" onclick="toggleMobileAi()"></div>
 </div>
 
 <script>
@@ -1652,6 +1723,18 @@ function importProject(event) {
 // ══════════════════════════════════════════
 // UI HELPERS
 // ══════════════════════════════════════════
+function toggleMobileAi() {
+  const panel = document.getElementById('aiPanel');
+  const overlay = document.getElementById('aiPanelOverlay');
+  const isOpen = panel.classList.contains('mobile-open');
+  panel.classList.toggle('mobile-open', !isOpen);
+  overlay.classList.toggle('active', !isOpen);
+  // Make sure panel inner is visible
+  if (!isOpen) {
+    document.getElementById('aiPanelInner').style.display = 'flex';
+  }
+}
+
 function toggleAiPanel() {
   const panel = document.getElementById('aiPanel');
   const inner = document.getElementById('aiPanelInner');
