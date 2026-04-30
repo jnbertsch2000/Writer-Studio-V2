@@ -271,35 +271,59 @@
   .editor-wrap {
     flex: 1;
     overflow-y: auto;
-    padding: 30px 40px;
+    padding: 20px;
+    background: #efefed;
+  }
+
+  .editor-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #888888;
+    margin-bottom: 6px;
+    padding-left: 2px;
+  }
+
+  .editor-box {
     background: #ffffff;
+    border: 2px solid #cccccc;
+    border-radius: 8px;
+    padding: 24px 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .editor-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 2px 12px rgba(74,111,165,0.15);
   }
 
   .chapter-title-input {
     font-family: 'Playfair Display', serif;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     color: #111111;
     -webkit-text-fill-color: #111111;
     background: #ffffff;
     border: none;
-    border-bottom: 2px solid var(--border);
+    border-bottom: 2px solid #eeeeee;
     width: 100%;
     padding: 0 0 10px;
-    margin-bottom: 20px;
     outline: none;
   }
 
-  .chapter-title-input::placeholder { color: #bbbbbb; }
+  .chapter-title-input::placeholder { color: #cccccc; }
   .chapter-title-input:focus { border-bottom-color: var(--accent); }
 
   #editor {
     width: 100%;
     min-height: 500px;
-    flex: 1;
     font-family: 'Crimson Pro', serif;
     font-size: 18px;
-    line-height: 1.8;
+    line-height: 1.85;
     color: #111111;
     -webkit-text-fill-color: #111111;
     background: #ffffff;
@@ -750,6 +774,9 @@
       <button class="btn btn-gold" style="width:100%;padding:12px;" onclick="saveApiKey()">
         Enter the Studio →
       </button>
+      <button class="btn" style="width:100%;padding:10px;margin-top:8px;background:#ffffff;color:#555555;border:1px solid #cccccc;" onclick="skipApiKey()">
+        Skip for now (no AI features)
+      </button>
       <p class="api-hint">Your key is stored locally in your browser and never sent anywhere except directly to Anthropic's API.</p>
     </div>
   </div>
@@ -867,6 +894,11 @@ function saveApiKey() {
   if (!k.startsWith('sk-ant-')) { toast('Please enter a valid Anthropic API key (starts with sk-ant-)'); return; }
   apiKey = k;
   localStorage.setItem('ws_apikey', k);
+  showApp();
+}
+
+function skipApiKey() {
+  apiKey = '';
   showApp();
 }
 
@@ -1098,8 +1130,11 @@ function openChapter(cid) {
         </div>
       </div>
       <div class="editor-wrap">
-        <input class="chapter-title-input" id="chapterTitleInput" value="${esc(ch.title)}" placeholder="Chapter Title" oninput="updateChapterTitle()">
-        <textarea id="editor" placeholder="Begin writing here…" oninput="onEditorInput()" spellcheck="true">${ch.body ? ch.body.replace(/<br\s*\/?>/gi,'\n').replace(/<p[^>]*>/gi,'').replace(/<\/p>/gi,'\n').replace(/<[^>]+>/g,'') : ''}</textarea>
+        <div class="editor-label">✎ Chapter Content — tap below to write or paste</div>
+        <div class="editor-box">
+          <input class="chapter-title-input" id="chapterTitleInput" value="${esc(ch.title)}" placeholder="Chapter Title" oninput="updateChapterTitle()">
+          <textarea id="editor" placeholder="Tap here to start writing, or paste your text…" oninput="onEditorInput()" spellcheck="true">${ch.body ? ch.body.replace(/<br\s*\/?>/gi,'\n').replace(/<p[^>]*>/gi,'').replace(/<\/p>/gi,'\n').replace(/<[^>]+>/g,'') : ''}</textarea>
+        </div>
       </div>
     </div>
 
@@ -1390,6 +1425,7 @@ function showAiResult(text) {
 }
 
 async function aiAction(action) {
+  if (!apiKey) { toast('Add your Anthropic API key to use AI features'); return; }
   if (!state.currentProject) { toast('No project selected'); return; }
   const chText = getChapterText();
 
@@ -1499,6 +1535,7 @@ async function aiUpdateAllMeta() {
 }
 
 async function sendCustomPrompt() {
+  if (!apiKey) { toast('Add your Anthropic API key to use AI features'); return; }
   const input = document.getElementById('aiPromptInput');
   const prompt = input.value.trim();
   if (!prompt) return;
@@ -1519,6 +1556,7 @@ async function sendCustomPrompt() {
 }
 
 async function extractFromImage(event) {
+  if (!apiKey) { toast('Add your Anthropic API key to use AI features'); return; }
   const file = event.target.files[0];
   if (!file) return;
   event.target.value = '';
