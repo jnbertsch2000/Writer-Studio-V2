@@ -946,7 +946,8 @@
         <button class="btn btn-ghost" onclick="exportProject()" title="Export project as JSON">⬇ Export</button>
         <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" title="Import project">⬆ Import</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importProject(event)">
-        <button class="btn btn-ghost" onclick="changeApiKey()" style="font-size:12px;">🔑 API Key</button>
+        <button class="btn" style="background:#4a6fa5;color:white;border-color:#2d4d7a;" onclick="toggleMobileAi()">✦ AI</button>
+        <button class="btn btn-ghost" onclick="changeApiKey()" style="font-size:12px;">🔑</button>
       </div>
     </header>
 
@@ -1005,9 +1006,6 @@
   </div>
 
   <div id="toast"></div>
-
-  <!-- Mobile AI float button -->
-  <button id="aiFloatBtn" onclick="toggleMobileAi()">✦ AI</button>
   <div id="aiPanelOverlay" onclick="toggleMobileAi()"></div>
 </div>
 
@@ -1808,12 +1806,16 @@ function importProject(event) {
 function toggleMobileAi() {
   const panel = document.getElementById('aiPanel');
   const overlay = document.getElementById('aiPanelOverlay');
-  const isOpen = panel.classList.contains('mobile-open');
-  panel.classList.toggle('mobile-open', !isOpen);
-  overlay.classList.toggle('active', !isOpen);
-  // Make sure panel inner is visible
-  if (!isOpen) {
+  const isMobile = window.innerWidth <= 768;
+
+  if (isMobile) {
+    const isOpen = panel.classList.contains('mobile-open');
+    panel.classList.toggle('mobile-open', !isOpen);
+    overlay.classList.toggle('active', !isOpen);
     document.getElementById('aiPanelInner').style.display = 'flex';
+  } else {
+    // On desktop, toggle collapse
+    toggleAiPanel();
   }
 }
 
