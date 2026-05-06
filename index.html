@@ -1575,6 +1575,38 @@ function showAiResult(text) {
   }
 }
 
+function applyFixes(type) {
+  const editor = document.getElementById('editor');
+  if (!editor) { toast('No chapter open'); return; }
+
+  let fixes = [];
+  if (type === 'spelling') fixes = window._spellingFixes || [];
+  else if (type === 'grammar') fixes = window._grammarFixes || [];
+  else if (type === 'both') fixes = [...(window._spellingFixes||[]), ...(window._grammarFixes||[])];
+
+  if (fixes.length === 0) { toast('No fixes to apply'); return; }
+
+  let text = editor.value;
+  let applied = 0;
+  fixes.forEach(f => {
+    if (f.original && f.fixed && text.includes(f.original)) {
+      text = text.split(f.original).join(f.fixed);
+      applied++;
+    }
+  });
+
+  editor.value = text;
+  onEditorInput();
+
+  // Remove the apply buttons
+  ['applySpellingBtn','applyGrammarBtn','applyBothBtn'].forEach(id => {
+    document.getElementById(id)?.remove();
+  });
+
+  toast(`✓ Applied ${applied} fix${applied!==1?'es':''}!`);
+  document.getElementById('aiOutput').textContent += `\n\n✓ ${applied} fix${applied!==1?'es':''} applied to your text.`;
+}
+
 async function aiAction(action) {
   if (!apiKey) { toast('Add your Anthropic API key to use AI features'); return; }
   if (!state.currentProject) { toast('No project selected'); return; }
@@ -1586,8 +1618,98 @@ async function aiAction(action) {
   try {
     let result = '';
     if (action === 'grammar') {
-      result = await callAI([{ role:'user', content:`Please check this text for spelling and grammatical errors. List each issue with the incorrect text, what's wrong, and the correction:\n\n${chText}` }],
-        'You are a precise copy editor. Be thorough but concise.');
+      showAiLoading();
+      const raw = await callAI([{ role:'user', content:`Analyze this text for spelling and grammar errors. Return ONLY a JSON object with no markdown, no explanation, in this exact format:
+{
+  "spelling": [{"original": "...", "fixed": "..."}],
+  "grammar": [{"original": "...", "fixed": "..."}],
+  "summary": "Brief plain-English summary of what was found"
+}
+
+TEXT:
+${chText}` }],
+        'You are a precise copy editor. Return only valid JSON, no markdown fences, no explanation outside the JSON.');
+
+      let parsed;
+      try {
+        parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+      } catch(e) {
+        showAiResult(raw);
+        return;
+      }
+
+      // Store fixes for apply buttons
+      window._spellingFixes = parsed.spelling || [];
+      window._grammarFixes = parsed.grammar || [];
+
+      // Build readable output
+      let display = parsed.summary + '\n\n';
+      if (parsed.spelling.length > 0) {
+        display += `SPELLING (${parsed.spelling.length} issue${parsed.spelling.length!==1?'s':''}):\n`;
+        parsed.spelling.forEach(f => { display += `  • "${f.original}" → "${f.fixed}"\n`; });
+        display += '\n';
+      } else {
+        display += 'SPELLING: No errors found ✓\n\n';
+      }
+      if (parsed.grammar.length > 0) {
+        display += `GRAMMAR (${parsed.grammar.length} issue${parsed.grammar.length!==1?'s':''}):\n`;
+        parsed.grammar.forEach(f => { display += `  • "${f.original}" → "${f.fixed}"\n`; });
+      } else {
+        display += 'GRAMMAR: No errors found ✓';
+      }
+
+      document.getElementById('aiOutput').textContent = display;
+
+      // Remove old buttons
+      ['aiInsertBtn','applySpellingBtn','applyGrammarBtn','applyBothBtn'].forEach(id => {
+        document.getElementById(id)?.remove();
+      });
+
+      const out = document.getElementById('aiOutput');
+
+      if (window._spellingFixes.length > 0 || window._grammarFixes.length > 0) {
+        if (window._spellingFixes.length > 0) {
+          const sb = document.createElement('button');
+          sb.id = 'applySpellingBtn';
+          sb.className = 'ai-action-btn';
+          sb.style.marginTop = '8px';
+          sb.style.background = '#e8f4e8';
+          sb.style.color = '#2d6a2d';
+          sb.style.borderColor = '#a8d8a8';
+          sb.innerHTML = '<span class="btn-icon">✓</span> Apply Spelling Fixes';
+          sb.onclick = () => applyFixes('spelling');
+          out.after(sb);
+        }
+
+        if (window._grammarFixes.length > 0) {
+          const gb = document.createElement('button');
+          gb.id = 'applyGrammarBtn';
+          gb.className = 'ai-action-btn';
+          gb.style.marginTop = '6px';
+          gb.style.background = '#e8eef6';
+          gb.style.color = '#2d4d7a';
+          gb.style.borderColor = '#a8c4e0';
+          gb.innerHTML = '<span class="btn-icon">✓</span> Apply Grammar Fixes';
+          gb.onclick = () => applyFixes('grammar');
+          const spellingBtn = document.getElementById('applySpellingBtn');
+          if (spellingBtn) spellingBtn.after(gb);
+          else out.after(gb);
+        }
+
+        if (window._spellingFixes.length > 0 && window._grammarFixes.length > 0) {
+          const ab = document.createElement('button');
+          ab.id = 'applyBothBtn';
+          ab.className = 'ai-action-btn';
+          ab.style.marginTop = '6px';
+          ab.style.background = '#4a6fa5';
+          ab.style.color = '#ffffff';
+          ab.style.borderColor = '#2d4d7a';
+          ab.innerHTML = '<span class="btn-icon">✓✓</span> Apply All Fixes';
+          ab.onclick = () => applyFixes('both');
+          document.getElementById('applyGrammarBtn')?.after(ab);
+        }
+      }
+      return;
 
     } else if (action === 'feedback') {
       const proj = getProject();
