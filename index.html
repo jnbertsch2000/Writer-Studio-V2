@@ -983,7 +983,10 @@
             <button class="ai-action-btn" onclick="aiAction('grammar')"><span class="btn-icon">✎</span> Check Grammar & Spelling</button>
             <button class="ai-action-btn" onclick="aiAction('feedback')"><span class="btn-icon">◈</span> Analyze & Give Feedback</button>
             <button class="ai-action-btn" onclick="aiAction('continue')"><span class="btn-icon">▶</span> Continue Writing (Match Style)</button>
-            <button class="ai-action-btn" onclick="aiAction('updateMeta')"><span class="btn-icon">⟳</span> Auto-Update All Metadata</button>
+            <button class="ai-action-btn" onclick="aiUpdateMeta('characters')"><span class="btn-icon">👤</span> Update Characters</button>
+            <button class="ai-action-btn" onclick="aiUpdateMeta('places')"><span class="btn-icon">🗺</span> Update Places</button>
+            <button class="ai-action-btn" onclick="aiUpdateMeta('plot')"><span class="btn-icon">⚡</span> Update Plot</button>
+            <button class="ai-action-btn" onclick="aiUpdateMeta('outline')"><span class="btn-icon">📋</span> Update Outline</button>
             <button class="ai-action-btn" onclick="document.getElementById('imgUpload').click()"><span class="btn-icon">📷</span> Photo → Extract Text</button>
             <input type="file" id="imgUpload" accept="image/*" onchange="extractFromImage(event)">
           </div>
@@ -1261,7 +1264,6 @@ function openChapter(cid) {
       <div class="tab" data-tab="places" onclick="switchTab('places')"><span class="tab-icon">🗺</span> Places</div>
       <div class="tab" data-tab="plot" onclick="switchTab('plot')"><span class="tab-icon">⚡</span> Plot</div>
       <div class="tab" data-tab="outline" onclick="switchTab('outline')"><span class="tab-icon">📋</span> Outline</div>
-      <div class="tab" data-tab="storyline" onclick="switchTab('storyline')"><span class="tab-icon">📜</span> Storyline</div>
     </div>
 
     <!-- Write Tab -->
@@ -1294,7 +1296,6 @@ function openChapter(cid) {
     <div id="tab-places" class="meta-panel"></div>
     <div id="tab-plot" class="meta-panel"></div>
     <div id="tab-outline" class="meta-panel"></div>
-    <div id="tab-storyline" class="meta-panel"></div>
   `;
 
   updateWordCount();
