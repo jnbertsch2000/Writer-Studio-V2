@@ -749,6 +749,161 @@
     line-height: 1.6;
   }
 
+  /* ── CHAPTER ITEM CONTROLS ── */
+  .chapter-item-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chapter-item-actions {
+    display: none;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .chapter-item:hover .chapter-item-actions,
+  .chapter-item.active .chapter-item-actions { display: flex; }
+
+  .ch-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    color: var(--muted);
+    line-height: 1;
+  }
+
+  .ch-btn:hover { background: rgba(0,0,0,0.08); color: var(--ink); }
+  .ch-btn.del:hover { color: var(--danger); }
+
+  .chapter-rename-input {
+    flex: 1;
+    font-family: 'Crimson Pro', serif;
+    font-size: 13px;
+    background: white;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 2px 6px;
+    color: var(--ink);
+    outline: none;
+    min-width: 0;
+  }
+
+  /* ── FEEDBACK SCOPE ── */
+  .scope-selector {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .scope-selector > label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .scope-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .scope-option input { cursor: pointer; accent-color: var(--accent); }
+
+  .scope-chapter-list {
+    max-height: 130px;
+    overflow-y: auto;
+    margin-top: 6px;
+    padding: 4px;
+    background: #f8f8f6;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    display: none;
+  }
+
+  .scope-chapter-list.visible { display: block; }
+
+  .scope-ch-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    font-size: 12px;
+    color: var(--ink);
+    border-radius: 3px;
+  }
+
+  .scope-ch-item:hover { background: var(--accent-light); }
+  .scope-ch-item input { accent-color: var(--accent); }
+
+  /* ── AI CONVERSATION THREAD ── */
+  .ai-conversation {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .ai-msg {
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .ai-msg.assistant {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: #222222;
+  }
+
+  .ai-msg.user {
+    background: var(--accent-light);
+    border: 1px solid rgba(74,111,165,0.2);
+    color: var(--accent-dark);
+  }
+
+  .ai-msg-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    color: var(--muted);
+  }
+
+  .ai-clear-btn {
+    font-size: 11px;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    cursor: pointer;
+    margin-bottom: 6px;
+    align-self: flex-end;
+  }
+
+  .ai-clear-btn:hover { color: var(--danger); border-color: var(--danger); }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: #f0f0ee; }
@@ -954,9 +1109,12 @@
     <!-- MAIN -->
     <div class="main">
 
-      <!-- SIDEBAR -->
-      <div class="sidebar">
-        <div class="sidebar-section">Chapters</div>
+      <!-- SIDEBAR - Chapter Manager -->
+      <div class="sidebar" id="chapterSidebar">
+        <div class="sidebar-section" style="display:flex;align-items:center;justify-content:space-between;padding-right:8px;">
+          <span>Chapters</span>
+          <button onclick="toggleChapterPanel()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;" title="Expand/collapse">⇔</button>
+        </div>
         <div class="chapter-list" id="chapterList"></div>
         <div class="sidebar-footer">
           <button class="btn btn-gold" onclick="addChapter()">+ Add Chapter</button>
@@ -981,7 +1139,7 @@
         <div class="ai-panel-inner" id="aiPanelInner">
           <div class="ai-actions">
             <button class="ai-action-btn" onclick="aiAction('grammar')"><span class="btn-icon">✎</span> Check Grammar & Spelling</button>
-            <button class="ai-action-btn" onclick="aiAction('feedback')"><span class="btn-icon">◈</span> Analyze & Give Feedback</button>
+            <button class="ai-action-btn" onclick="showFeedbackScope()"><span class="btn-icon">◈</span> Analyze & Give Feedback</button>
             <button class="ai-action-btn" onclick="aiAction('continue')"><span class="btn-icon">▶</span> Continue Writing (Match Style)</button>
             <button class="ai-action-btn" onclick="aiUpdateMeta('characters')"><span class="btn-icon">👤</span> Update Characters</button>
             <button class="ai-action-btn" onclick="aiUpdateMeta('places')"><span class="btn-icon">🗺</span> Update Places</button>
@@ -990,11 +1148,14 @@
             <button class="ai-action-btn" onclick="document.getElementById('imgUpload').click()"><span class="btn-icon">📷</span> Photo → Extract Text</button>
             <input type="file" id="imgUpload" accept="image/*" onchange="extractFromImage(event)">
           </div>
-          <div id="aiOutput" class="ai-output">
-            <span class="ai-output-placeholder">AI responses will appear here…</span>
+          <div id="scopeSelectorWrap"></div>
+          <button class="ai-clear-btn" onclick="clearConversation()">✕ Clear conversation</button>
+          <div class="ai-conversation" id="aiConversation">
+            <div class="ai-msg assistant"><div class="ai-msg-label">AI</div>Ready to help with your story. Use the buttons above or ask me anything below.</div>
           </div>
+          <div id="aiOutput" style="display:none"></div>
           <div class="ai-input-row">
-            <textarea class="ai-input" id="aiPromptInput" rows="2" placeholder="Ask the AI anything about your story…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCustomPrompt();}"></textarea>
+            <textarea class="ai-input" id="aiPromptInput" rows="2" placeholder="Ask a follow-up or anything about your story…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCustomPrompt();}"></textarea>
             <button class="ai-send" onclick="sendCustomPrompt()">↑</button>
           </div>
         </div>
@@ -1211,14 +1372,68 @@ function renderSidebar() {
   if (!proj) return;
   const list = document.getElementById('chapterList');
   list.innerHTML = '';
-  proj.chapterOrder.forEach(cid => {
+  proj.chapterOrder.forEach((cid, idx) => {
     const ch = proj.chapters[cid];
     const div = document.createElement('div');
     div.className = 'chapter-item' + (state.currentChapter === cid ? ' active' : '');
-    div.innerHTML = `<span>${esc(ch.title || 'Untitled')}</span><button class="chapter-del" onclick="deleteChapter(event,'${cid}')">✕</button>`;
-    div.onclick = (e) => { if (!e.target.classList.contains('chapter-del')) openChapter(cid); };
+    div.dataset.cid = cid;
+    div.innerHTML = `
+      <span class="chapter-item-title">${esc(ch.title || 'Untitled')}</span>
+      <span class="chapter-item-actions">
+        <button class="ch-btn" onclick="renameChapter(event,'${cid}')" title="Rename">✎</button>
+        <button class="ch-btn" onclick="moveChapter(event,'${cid}',-1)" title="Move up" ${idx===0?'disabled':''}>↑</button>
+        <button class="ch-btn" onclick="moveChapter(event,'${cid}',1)" title="Move down" ${idx===proj.chapterOrder.length-1?'disabled':''}>↓</button>
+        <button class="ch-btn del" onclick="deleteChapter(event,'${cid}')" title="Delete">✕</button>
+      </span>`;
+    div.onclick = (e) => {
+      if (e.target.closest('.chapter-item-actions')) return;
+      openChapter(cid);
+    };
     list.appendChild(div);
   });
+}
+
+function renameChapter(e, cid) {
+  e.stopPropagation();
+  const proj = getProject();
+  const ch = proj.chapters[cid];
+  const item = document.querySelector(`.chapter-item[data-cid="${cid}"]`);
+  if (!item) return;
+  const titleSpan = item.querySelector('.chapter-item-title');
+  const input = document.createElement('input');
+  input.className = 'chapter-rename-input';
+  input.value = ch.title;
+  titleSpan.replaceWith(input);
+  input.focus();
+  input.select();
+  const finish = () => {
+    const val = input.value.trim() || ch.title;
+    ch.title = val;
+    save();
+    renderSidebar();
+    if (document.getElementById('chapterTitleInput')) {
+      document.getElementById('chapterTitleInput').value = val;
+    }
+  };
+  input.onblur = finish;
+  input.onkeydown = (ev) => { if (ev.key === 'Enter') input.blur(); if (ev.key === 'Escape') { input.value = ch.title; input.blur(); } };
+}
+
+function moveChapter(e, cid, dir) {
+  e.stopPropagation();
+  const proj = getProject();
+  const idx = proj.chapterOrder.indexOf(cid);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= proj.chapterOrder.length) return;
+  proj.chapterOrder.splice(idx, 1);
+  proj.chapterOrder.splice(newIdx, 0, cid);
+  save();
+  renderSidebar();
+}
+
+function toggleChapterPanel() {
+  const sidebar = document.getElementById('chapterSidebar');
+  sidebar.classList.toggle('sidebar-expanded');
 }
 
 function addChapter() {
@@ -1548,31 +1763,122 @@ function getAllChapterText() {
   }).join('\n\n');
 }
 
-function showAiLoading() {
-  document.getElementById('aiOutput').innerHTML = '<div class="loading-bar"></div><span style="color:var(--muted);font-style:italic;">AI is thinking…</span>';
+// Conversation history for follow-ups
+let _conversationHistory = [];
+let _conversationContext = '';
+
+function clearConversation() {
+  _conversationHistory = [];
+  _conversationContext = '';
+  const conv = document.getElementById('aiConversation');
+  if (conv) conv.innerHTML = '<div class="ai-msg assistant"><div class="ai-msg-label">AI</div>Conversation cleared. Ready to help!</div>';
+  ['aiInsertBtn','applySpellingBtn','applyGrammarBtn','applyBothBtn'].forEach(id => document.getElementById(id)?.remove());
 }
 
-function showAiResult(text) {
-  document.getElementById('aiOutput').textContent = text;
-  // Show insert button if editor is open
-  const existing = document.getElementById('aiInsertBtn');
-  if (existing) existing.remove();
-  const editor = document.getElementById('editor');
-  if (editor && text && !text.startsWith('Error') && !text.startsWith('✓')) {
-    const btn = document.createElement('button');
-    btn.id = 'aiInsertBtn';
-    btn.className = 'ai-action-btn';
-    btn.style.marginTop = '8px';
-    btn.innerHTML = '<span class="btn-icon">↙</span> Insert into Editor';
-    btn.onclick = () => {
-      const pos = editor.selectionStart || editor.value.length;
-      const insert = (editor.value ? '\n\n' : '') + text;
-      editor.setRangeText(insert, pos, pos, 'end');
-      onEditorInput();
-      toast('Inserted into editor!');
-      btn.remove();
-    };
-    document.getElementById('aiOutput').after(btn);
+function addMessageToThread(role, text) {
+  const conv = document.getElementById('aiConversation');
+  if (!conv) return;
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  div.innerHTML = `<div class="ai-msg-label">${role === 'assistant' ? 'AI' : 'You'}</div>${esc(text)}`;
+  conv.appendChild(div);
+  conv.scrollTop = conv.scrollHeight;
+  return div;
+}
+
+function addLoadingMessage() {
+  const conv = document.getElementById('aiConversation');
+  if (!conv) return null;
+  const div = document.createElement('div');
+  div.className = 'ai-msg assistant';
+  div.id = 'aiLoadingMsg';
+  div.innerHTML = '<div class="ai-msg-label">AI</div><div class="loading-bar"></div><em style="color:#aaa;font-size:12px;">Thinking…</em>';
+  conv.appendChild(div);
+  conv.scrollTop = conv.scrollHeight;
+  return div;
+}
+
+function showAiLoading() {
+  document.getElementById('aiLoadingMsg')?.remove();
+  addLoadingMessage();
+}
+
+function showAiResult(text, skipHistory) {
+  document.getElementById('aiLoadingMsg')?.remove();
+  addMessageToThread('assistant', text);
+  if (!skipHistory) {
+    _conversationHistory.push({ role: 'assistant', content: text });
+  }
+}
+
+function showFeedbackScope() {
+  if (!apiKey) { toast('Add your Anthropic API key to use AI features'); return; }
+  if (!state.currentProject) { toast('No project selected'); return; }
+  const proj = getProject();
+  const wrap = document.getElementById('scopeSelectorWrap');
+
+  wrap.innerHTML = `
+    <div class="scope-selector">
+      <label>Feedback Scope</label>
+      <label class="scope-option"><input type="radio" name="fbscope" value="current" checked onchange="updateScopeUI()"> Current chapter only</label>
+      <label class="scope-option"><input type="radio" name="fbscope" value="select" onchange="updateScopeUI()"> Select specific chapters</label>
+      <label class="scope-option"><input type="radio" name="fbscope" value="all" onchange="updateScopeUI()"> Entire project</label>
+      <div class="scope-chapter-list" id="scopeChapterList">
+        ${proj.chapterOrder.map(cid => `
+          <label class="scope-ch-item">
+            <input type="checkbox" value="${cid}" checked>
+            ${esc(proj.chapters[cid].title)}
+          </label>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="ai-action-btn" style="flex:1;" onclick="runFeedback()">◈ Analyze</button>
+        <button class="ai-action-btn" style="background:#f0f0ee;" onclick="document.getElementById('scopeSelectorWrap').innerHTML=''">✕</button>
+      </div>
+    </div>`;
+}
+
+function updateScopeUI() {
+  const val = document.querySelector('input[name="fbscope"]:checked')?.value;
+  const list = document.getElementById('scopeChapterList');
+  if (list) list.classList.toggle('visible', val === 'select');
+}
+
+function getScopeText() {
+  const val = document.querySelector('input[name="fbscope"]:checked')?.value || 'current';
+  const proj = getProject();
+  if (val === 'all') return getAllChapterText();
+  if (val === 'select') {
+    const checked = [...document.querySelectorAll('#scopeChapterList input:checked')].map(cb => cb.value);
+    return checked.map(cid => {
+      const ch = proj.chapters[cid];
+      const body = (ch.body || '').replace(/<[^>]+>/g,' ').trim();
+      return `=== ${ch.title} ===\n${body}`;
+    }).join('\n\n');
+  }
+  // current
+  return getChapterText();
+}
+
+async function runFeedback() {
+  if (!apiKey) { toast('Add your Anthropic API key to use AI features'); return; }
+  const scopeText = getScopeText();
+  if (!scopeText.trim()) { toast('No text in the selected scope'); return; }
+  document.getElementById('scopeSelectorWrap').innerHTML = '';
+
+  const proj = getProject();
+  const prompt = `Analyze this ${proj.genre || 'fiction'} writing and provide detailed feedback on: pacing, character voice, dialogue, descriptions, structure, and overall effectiveness. Be constructive and specific with examples from the text.\n\n${scopeText}`;
+
+  addMessageToThread('user', 'Analyze & give feedback on selected chapters');
+  _conversationHistory.push({ role: 'user', content: prompt });
+  _conversationContext = scopeText;
+  showAiLoading();
+
+  try {
+    const result = await callAI(_conversationHistory, 'You are an experienced literary editor. Provide thorough, constructive creative writing feedback. Remember this conversation so you can answer follow-up questions.');
+    showAiResult(result);
+  } catch(e) {
+    document.getElementById('aiLoadingMsg')?.remove();
+    addMessageToThread('assistant', 'Error: ' + e.message);
   }
 }
 
@@ -1605,7 +1911,7 @@ function applyFixes(type) {
   });
 
   toast(`✓ Applied ${applied} fix${applied!==1?'es':''}!`);
-  document.getElementById('aiOutput').textContent += `\n\n✓ ${applied} fix${applied!==1?'es':''} applied to your text.`;
+  addMessageToThread('assistant', `✓ ${applied} fix${applied!==1?'es':''} applied to your text.`);
 }
 
 async function aiAction(action) {
@@ -1619,6 +1925,7 @@ async function aiAction(action) {
   try {
     let result = '';
     if (action === 'grammar') {
+      addMessageToThread('user', 'Check grammar & spelling');
       showAiLoading();
       const raw = await callAI([{ role:'user', content:`Analyze this text for spelling and grammar errors. Return ONLY a JSON object with no markdown, no explanation, in this exact format:
 {
@@ -1659,7 +1966,9 @@ ${chText}` }],
         display += 'GRAMMAR: No errors found ✓';
       }
 
-      document.getElementById('aiOutput').textContent = display;
+      document.getElementById('aiLoadingMsg')?.remove();
+      addMessageToThread('user', 'Check grammar & spelling');
+      addMessageToThread('assistant', display);
 
       // Remove old buttons
       ['aiInsertBtn','applySpellingBtn','applyGrammarBtn','applyBothBtn'].forEach(id => {
@@ -1713,13 +2022,38 @@ ${chText}` }],
       return;
 
     } else if (action === 'feedback') {
-      const proj = getProject();
-      result = await callAI([{ role:'user', content:`Analyze this excerpt from a ${proj.genre || 'fiction'} story. Provide feedback on: pacing, character voice, dialogue (if any), descriptions, and overall effectiveness. Be constructive and specific.\n\n${chText}` }],
-        'You are an experienced literary editor providing constructive creative writing feedback.');
+      await runFeedback();
+      return;
 
     } else if (action === 'continue') {
-      result = await callAI([{ role:'user', content:`Continue writing from where this text ends, matching the author's style, voice, and tone. Write 2-3 paragraphs:\n\n${chText}` }],
-        'You are a skilled ghostwriter. Mirror the author\'s voice precisely — their sentence rhythm, word choices, descriptive style, and narrative perspective.');
+      addMessageToThread('user', 'Continue writing (match my style)');
+      _conversationHistory.push({ role:'user', content:`Continue writing from where this text ends, matching the author's style, voice, and tone. Write 2-3 paragraphs:\n\n${chText}` });
+      result = await callAI(_conversationHistory, 'You are a skilled ghostwriter. Mirror the author\'s voice precisely — their sentence rhythm, word choices, descriptive style, and narrative perspective.');
+      document.getElementById('aiLoadingMsg')?.remove();
+      addMessageToThread('assistant', result);
+      _conversationHistory.push({ role:'assistant', content: result });
+      // Add insert button
+      document.getElementById('aiInsertBtn')?.remove();
+      const editor = document.getElementById('editor');
+      if (editor) {
+        const btn = document.createElement('button');
+        btn.id = 'aiInsertBtn';
+        btn.className = 'ai-action-btn';
+        btn.style.marginTop = '6px';
+        btn.style.background = '#e8f4e8';
+        btn.style.color = '#2d6a2d';
+        btn.style.borderColor = '#a8d8a8';
+        btn.innerHTML = '<span class="btn-icon">↙</span> Insert into Editor';
+        btn.onclick = () => {
+          const pos = editor.value.length;
+          editor.setRangeText('\n\n' + result, pos, pos, 'end');
+          onEditorInput();
+          toast('Inserted!');
+          btn.remove();
+        };
+        document.getElementById('aiConversation').after(btn);
+      }
+      return;
 
     } else if (action === 'updateMeta') {
       result = await aiUpdateAllMeta();
@@ -1814,18 +2148,26 @@ async function sendCustomPrompt() {
   const prompt = input.value.trim();
   if (!prompt) return;
   input.value = '';
+
+  const proj = getProject();
+  const chText = getChapterText();
+
+  // Build context prefix for first message if no history
+  let userContent = prompt;
+  if (_conversationHistory.length === 0 && (chText || proj)) {
+    userContent = `Project: "${proj?.name || 'untitled'}" (${proj?.genre || 'fiction'})\n\nCurrent chapter:\n${chText}\n\n${prompt}`;
+  }
+
+  addMessageToThread('user', prompt);
+  _conversationHistory.push({ role: 'user', content: userContent });
   showAiLoading();
 
-  const chText = getChapterText();
-  const proj = getProject();
-  const context = proj ? `Project: "${proj.name}" (${proj.genre || 'fiction'})\n\nCurrent chapter text:\n${chText}\n\n` : '';
-
   try {
-    const result = await callAI([{ role:'user', content: context + prompt }],
-      'You are a creative writing assistant helping an author with their story. Be helpful, specific, and creative.');
+    const result = await callAI(_conversationHistory, 'You are a creative writing assistant. Maintain context across the conversation and give helpful, specific responses about the author\'s story.');
     showAiResult(result);
   } catch(e) {
-    showAiResult('Error: ' + e.message);
+    document.getElementById('aiLoadingMsg')?.remove();
+    addMessageToThread('assistant', 'Error: ' + e.message);
   }
 }
 
