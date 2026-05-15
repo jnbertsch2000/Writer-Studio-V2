@@ -904,6 +904,118 @@
 
   .ai-clear-btn:hover { color: var(--danger); border-color: var(--danger); }
 
+  /* ── CHARACTER & PLACE CARDS ── */
+  .meta-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: #f8f8f6;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .char-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 12px;
+    position: relative;
+  }
+
+  .char-card-photo {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    background: #f0f0ee;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    border: 2px dashed #cccccc;
+    flex-shrink: 0;
+  }
+
+  .char-card-photo:hover .char-photo-overlay { opacity: 1; }
+
+  .char-photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 6px;
+  }
+
+  .char-card-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .char-card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .char-fields {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .char-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .char-field-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+
+  .char-field-val {
+    font-size: 13px;
+    color: var(--ink);
+    background: #f0f0ee;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .char-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-top: 6px;
+    margin-bottom: 3px;
+  }
+
+  .char-section-text {
+    font-size: 13px;
+    color: #333333;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: #f0f0ee; }
@@ -1642,66 +1754,249 @@ function switchTab(name) {
 function renderMetaTab(category) {
   const panel = document.getElementById('tab-' + category);
   if (!panel) return;
-  const proj = getProject();
-  const labels = { characters:'Characters', places:'Places', plot:'Plot', outline:'Outline', storyline:'Storyline' };
-  const isList = ['characters','places'].includes(category);
+  if (category === 'characters') { renderCharactersTab(panel); return; }
+  if (category === 'places') { renderPlacesTab(panel); return; }
 
-  let html = `<div class="meta-header"><h2>${labels[category]}</h2>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-ghost" style="font-size:13px;" onclick="aiUpdateMeta('${category}')">✦ AI Update</button>
-      ${isList ? `<button class="btn btn-gold" onclick="showModal('addMeta',{category:'${category}'})">+ Add</button>` : `<button class="btn btn-gold" onclick="showModal('editSingleText',{category:'${category}'})">Edit</button>`}
+  const proj = getProject();
+  const labels = { plot:'Plot', outline:'Outline' };
+  const text = proj.meta[category] || '';
+  panel.innerHTML = `
+    <div class="meta-header">
+      <h2>${labels[category]}</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" style="font-size:13px;" onclick="aiUpdateMeta('${category}')">✦ AI Update</button>
+        <button class="btn btn-gold" onclick="showModal('editSingleText',{category:'${category}'})">Edit</button>
+      </div>
     </div>
-  </div>
-  <div class="meta-content">`;
-
-  if (isList) {
-    const items = proj.meta[category] || [];
-    if (items.length === 0) {
-      html += `<div class="empty-state" style="padding:40px 20px;"><div class="empty-icon">${category==='characters'?'👤':'🗺'}</div><h3>No ${labels[category]} yet</h3><p style="font-size:15px;margin-top:6px;color:var(--muted)">Add manually or use AI to extract from your text</p></div>`;
-    } else {
-      items.forEach((item, idx) => {
-        html += `<div class="meta-item">
-          <div class="meta-item-actions">
-            <button class="meta-item-btn" onclick="showModal('editMeta',{category:'${category}',idx:${idx}})">Edit</button>
-            <button class="meta-item-btn" style="color:#c0392b;" onclick="deleteMetaItem('${category}',${idx})">✕</button>
-          </div>
-          <div class="meta-item-name">${esc(item.name)}</div>
-          <div class="meta-item-desc">${esc(item.desc)}</div>
-        </div>`;
-      });
-    }
-  } else {
-    const text = proj.meta[category] || '';
-    html += `<div class="meta-item"><div style="font-size:16px;line-height:1.8;white-space:pre-wrap;">${esc(text) || '<em style="color:var(--muted)">Nothing here yet. Click Edit or use AI Update.</em>'}</div></div>`;
-  }
-
-  html += '</div>';
-  panel.innerHTML = html;
+    <div class="meta-content">
+      <div class="meta-item"><div style="font-size:15px;line-height:1.8;white-space:pre-wrap;">${esc(text) || '<em style="color:var(--muted)">Nothing here yet. Click Edit or use AI Update.</em>'}</div></div>
+    </div>`;
 }
 
-// ══════════════════════════════════════════
-// META MANAGEMENT
-// ══════════════════════════════════════════
-function addMetaItem(category) {
-  const name = document.getElementById('mMetaName').value.trim();
-  const desc = document.getElementById('mMetaDesc').value.trim();
-  if (!name) { toast('Please enter a name'); return; }
+// ── CHARACTERS TAB ──────────────────────────
+function renderCharactersTab(panel) {
   const proj = getProject();
-  proj.meta[category].push({ name, desc });
-  save();
-  closeModal();
-  renderMetaTab(category);
+  const chars = proj.meta.characters || [];
+  const filterGender = window._charFilterGender || '';
+  const filterRace   = window._charFilterRace   || '';
+  const sortAZ       = window._charSortAZ !== false;
+
+  // Collect unique values for filters
+  const genders = [...new Set(chars.map(c => c.gender).filter(Boolean))].sort();
+  const races   = [...new Set(chars.map(c => c.race).filter(Boolean))].sort();
+
+  let filtered = chars.filter(c =>
+    (!filterGender || c.gender === filterGender) &&
+    (!filterRace   || c.race   === filterRace)
+  );
+  if (sortAZ) filtered = [...filtered].sort((a,b) => (a.name||'').localeCompare(b.name||''));
+
+  panel.innerHTML = `
+    <div class="meta-header">
+      <h2>👤 Characters</h2>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost" style="font-size:12px;" onclick="aiUpdateMeta('characters')">✦ AI</button>
+        <button class="btn btn-gold" onclick="showCharModal()">+ Add</button>
+      </div>
+    </div>
+    <div class="meta-filter-bar">
+      <select onchange="window._charFilterGender=this.value;renderMetaTab('characters')" style="font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:white;color:var(--ink);">
+        <option value="">All Genders</option>
+        ${genders.map(g=>`<option value="${esc(g)}" ${filterGender===g?'selected':''}>${esc(g)}</option>`).join('')}
+      </select>
+      <select onchange="window._charFilterRace=this.value;renderMetaTab('characters')" style="font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:white;color:var(--ink);">
+        <option value="">All Races</option>
+        ${races.map(r=>`<option value="${esc(r)}" ${filterRace===r?'selected':''}>${esc(r)}</option>`).join('')}
+      </select>
+      <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer;">
+        <input type="checkbox" ${sortAZ?'checked':''} onchange="window._charSortAZ=this.checked;renderMetaTab('characters')"> A–Z
+      </label>
+      <span style="font-size:12px;color:var(--muted);margin-left:auto;">${filtered.length} of ${chars.length}</span>
+    </div>
+    <div class="meta-content">
+      ${filtered.length === 0 ? `<div class="empty-state" style="padding:30px;"><div class="empty-icon">👤</div><h3>No characters yet</h3></div>` :
+        filtered.map((c, i) => {
+          const realIdx = chars.indexOf(c);
+          return `<div class="char-card">
+            <div class="char-card-photo" onclick="triggerPhotoUpload('char',${realIdx})">
+              ${c.photo ? `<img src="${c.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">` : `<span style="font-size:28px;">👤</span>`}
+              <div class="char-photo-overlay">📷</div>
+            </div>
+            <input type="file" accept="image/*" id="charPhoto_${realIdx}" style="display:none" onchange="saveCharPhoto(event,${realIdx})">
+            <div class="char-card-body">
+              <div class="char-card-name">${esc(c.name)}</div>
+              <div class="char-fields">
+                <div class="char-field"><span class="char-field-label">Gender</span><span class="char-field-val">${esc(c.gender)||'—'}</span></div>
+                <div class="char-field"><span class="char-field-label">Race</span><span class="char-field-val">${esc(c.race)||'—'}</span></div>
+              </div>
+              ${c.physical ? `<div class="char-section-label">Physical Attributes</div><div class="char-section-text">${esc(c.physical)}</div>` : ''}
+              ${c.notes ? `<div class="char-section-label">Notes</div><div class="char-section-text">${esc(c.notes)}</div>` : ''}
+            </div>
+            <div class="meta-item-actions">
+              <button class="meta-item-btn" onclick="showCharModal(${realIdx})">Edit</button>
+              <button class="meta-item-btn" style="color:#c0392b;" onclick="deleteMetaItem('characters',${realIdx})">✕</button>
+            </div>
+          </div>`;
+        }).join('')}
+    </div>`;
 }
 
-function editMetaItem(category, idx) {
-  const name = document.getElementById('mMetaName').value.trim();
-  const desc = document.getElementById('mMetaDesc').value.trim();
-  if (!name) { toast('Please enter a name'); return; }
+function triggerPhotoUpload(type, idx) {
+  document.getElementById(`${type}Photo_${idx}`)?.click();
+}
+
+function saveCharPhoto(event, idx) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const proj = getProject();
+    if (!proj.meta.characters[idx]) return;
+    proj.meta.characters[idx].photo = e.target.result;
+    save();
+    renderMetaTab('characters');
+  };
+  reader.readAsDataURL(file);
+}
+
+function savePlacePhoto(event, idx) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const proj = getProject();
+    if (!proj.meta.places[idx]) return;
+    proj.meta.places[idx].photo = e.target.result;
+    save();
+    renderMetaTab('places');
+  };
+  reader.readAsDataURL(file);
+}
+
+function showCharModal(idx) {
   const proj = getProject();
-  proj.meta[category][idx] = { name, desc };
+  const c = idx !== undefined ? proj.meta.characters[idx] : {};
+  const isEdit = idx !== undefined;
+  const box = document.getElementById('modalBox');
+  document.getElementById('modalOverlay').style.display = 'flex';
+  box.innerHTML = `
+    <h2>${isEdit ? 'Edit' : 'Add'} Character</h2>
+    <div class="form-group"><label>Name *</label><input id="cName" value="${esc(c.name||'')}" placeholder="Character name" autofocus></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>Gender</label><input id="cGender" value="${esc(c.gender||'')}" placeholder="e.g. Female"></div>
+      <div class="form-group"><label>Race / Species</label><input id="cRace" value="${esc(c.race||'')}" placeholder="e.g. Human"></div>
+    </div>
+    <div class="form-group"><label>Physical Attributes</label><textarea id="cPhysical" placeholder="Height, build, hair, eyes, distinguishing features…">${esc(c.physical||'')}</textarea></div>
+    <div class="form-group"><label>Notes</label><textarea id="cNotes" placeholder="Personality, backstory, role in story…">${esc(c.notes||'')}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="saveCharacter(${isEdit?idx:'undefined'})">${isEdit?'Save':'Add Character'}</button>
+    </div>`;
+}
+
+function saveCharacter(idx) {
+  const name = document.getElementById('cName').value.trim();
+  if (!name) { toast('Name is required'); return; }
+  const proj = getProject();
+  const data = {
+    name,
+    gender:   document.getElementById('cGender').value.trim(),
+    race:     document.getElementById('cRace').value.trim(),
+    physical: document.getElementById('cPhysical').value.trim(),
+    notes:    document.getElementById('cNotes').value.trim(),
+    photo:    idx !== undefined ? (proj.meta.characters[idx].photo || '') : '',
+  };
+  if (idx !== undefined) proj.meta.characters[idx] = data;
+  else proj.meta.characters.push(data);
   save();
   closeModal();
-  renderMetaTab(category);
+  renderMetaTab('characters');
+}
+
+// ── PLACES TAB ──────────────────────────────
+function renderPlacesTab(panel) {
+  const proj = getProject();
+  const places = proj.meta.places || [];
+  const sortAZ = window._placesSortAZ !== false;
+  let sorted = sortAZ ? [...places].sort((a,b) => (a.name||'').localeCompare(b.name||'')) : places;
+
+  panel.innerHTML = `
+    <div class="meta-header">
+      <h2>🗺 Places</h2>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost" style="font-size:12px;" onclick="aiUpdateMeta('places')">✦ AI</button>
+        <button class="btn btn-gold" onclick="showPlaceModal()">+ Add</button>
+      </div>
+    </div>
+    <div class="meta-filter-bar">
+      <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer;">
+        <input type="checkbox" ${sortAZ?'checked':''} onchange="window._placesSortAZ=this.checked;renderMetaTab('places')"> A–Z Sort
+      </label>
+      <span style="font-size:12px;color:var(--muted);margin-left:auto;">${places.length} place${places.length!==1?'s':''}</span>
+    </div>
+    <div class="meta-content">
+      ${sorted.length === 0 ? `<div class="empty-state" style="padding:30px;"><div class="empty-icon">🗺</div><h3>No places yet</h3></div>` :
+        sorted.map((p) => {
+          const realIdx = places.indexOf(p);
+          return `<div class="char-card">
+            <div class="char-card-photo" onclick="triggerPhotoUpload('place',${realIdx})">
+              ${p.photo ? `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">` : `<span style="font-size:28px;">🗺</span>`}
+              <div class="char-photo-overlay">📷</div>
+            </div>
+            <input type="file" accept="image/*" id="placePhoto_${realIdx}" style="display:none" onchange="savePlacePhoto(event,${realIdx})">
+            <div class="char-card-body">
+              <div class="char-card-name">${esc(p.name)}</div>
+              <div class="char-fields">
+                <div class="char-field"><span class="char-field-label">World</span><span class="char-field-val">${esc(p.world)||'—'}</span></div>
+                <div class="char-field"><span class="char-field-label">Continent</span><span class="char-field-val">${esc(p.continent)||'—'}</span></div>
+              </div>
+              ${p.desc ? `<div class="char-section-label">Description</div><div class="char-section-text">${esc(p.desc)}</div>` : ''}
+            </div>
+            <div class="meta-item-actions">
+              <button class="meta-item-btn" onclick="showPlaceModal(${realIdx})">Edit</button>
+              <button class="meta-item-btn" style="color:#c0392b;" onclick="deleteMetaItem('places',${realIdx})">✕</button>
+            </div>
+          </div>`;
+        }).join('')}
+    </div>`;
+}
+
+function showPlaceModal(idx) {
+  const proj = getProject();
+  const p = idx !== undefined ? proj.meta.places[idx] : {};
+  const isEdit = idx !== undefined;
+  const box = document.getElementById('modalBox');
+  document.getElementById('modalOverlay').style.display = 'flex';
+  box.innerHTML = `
+    <h2>${isEdit ? 'Edit' : 'Add'} Place</h2>
+    <div class="form-group"><label>Name *</label><input id="pName" value="${esc(p.name||'')}" placeholder="Place name" autofocus></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>World</label><input id="pWorld" value="${esc(p.world||'')}" placeholder="e.g. Norrath"></div>
+      <div class="form-group"><label>Continent / Region</label><input id="pContinent" value="${esc(p.continent||'')}" placeholder="e.g. Faydwer"></div>
+    </div>
+    <div class="form-group"><label>Description</label><textarea id="pDesc" placeholder="Describe this place — geography, culture, atmosphere…">${esc(p.desc||'')}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="savePlace(${isEdit?idx:'undefined'})">${isEdit?'Save':'Add Place'}</button>
+    </div>`;
+}
+
+function savePlace(idx) {
+  const name = document.getElementById('pName').value.trim();
+  if (!name) { toast('Name is required'); return; }
+  const proj = getProject();
+  const data = {
+    name,
+    world:     document.getElementById('pWorld').value.trim(),
+    continent: document.getElementById('pContinent').value.trim(),
+    desc:      document.getElementById('pDesc').value.trim(),
+    photo:     idx !== undefined ? (proj.meta.places[idx].photo || '') : '',
+  };
+  if (idx !== undefined) proj.meta.places[idx] = data;
+  else proj.meta.places.push(data);
+  save();
+  closeModal();
+  renderMetaTab('places');
 }
 
 function deleteMetaItem(category, idx) {
@@ -2080,16 +2375,29 @@ async function aiUpdateMeta(category) {
 
   try {
     let prompt = '';
-    if (category === 'characters' || category === 'places') {
-      const existing = (proj.meta[category] || []).map(i => i.name).join(', ');
-      prompt = `Read the following story text and identify all ${labels[category]}. For each, provide a name and a brief description. Return ONLY a JSON array like: [{"name":"...","desc":"..."}, ...]. Merge with existing: ${existing || 'none'}\n\nSTORY:\n${allText}`;
+    if (category === 'characters') {
+      const existing = (proj.meta.characters || []).map(i => i.name).join(', ');
+      prompt = `Read the following story and extract all characters. For each return a JSON array with objects having these fields: name, gender, race, physical (physical attributes), notes (personality/role). Preserve existing entries and add new ones. Existing: ${existing || 'none'}. Return ONLY a JSON array, no markdown.\n\nSTORY:\n${allText}`;
       const raw = await callAI([{ role:'user', content: prompt }], 'Return only valid JSON, no explanation, no markdown.');
-      const clean = raw.replace(/```json|```/g,'').trim();
-      const items = JSON.parse(clean);
-      proj.meta[category] = items;
+      const items = JSON.parse(raw.replace(/```json|```/g,'').trim());
+      // Preserve existing photos
+      const existingMap = {};
+      (proj.meta.characters || []).forEach(c => { existingMap[c.name] = c.photo || ''; });
+      proj.meta.characters = items.map(c => ({ ...c, photo: existingMap[c.name] || '' }));
       save();
-      renderMetaTab(category);
-      showAiResult(`✓ Updated ${items.length} ${category}`);
+      renderMetaTab('characters');
+      showAiResult(`✓ Updated ${items.length} characters`, true);
+    } else if (category === 'places') {
+      const existing = (proj.meta.places || []).map(i => i.name).join(', ');
+      prompt = `Read the following story and extract all locations and places. For each return a JSON array with objects having: name, world, continent, desc (description). Preserve existing entries and add new ones. Existing: ${existing || 'none'}. Return ONLY a JSON array, no markdown.\n\nSTORY:\n${allText}`;
+      const raw = await callAI([{ role:'user', content: prompt }], 'Return only valid JSON, no explanation, no markdown.');
+      const items = JSON.parse(raw.replace(/```json|```/g,'').trim());
+      const existingMap = {};
+      (proj.meta.places || []).forEach(p => { existingMap[p.name] = p.photo || ''; });
+      proj.meta.places = items.map(p => ({ ...p, photo: existingMap[p.name] || '' }));
+      save();
+      renderMetaTab('places');
+      showAiResult(`✓ Updated ${items.length} places`, true);
     } else {
       prompt = `Read the following story text and write a comprehensive ${labels[category]} summary. Be thorough.\n\nSTORY:\n${allText}`;
       const result = await callAI([{ role:'user', content: prompt }], 'You are a story analyst. Be thorough and organized.');
